@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solar System Simulation</title>
+    <link rel="stylesheet" href="style_probe.css">
+    
+    <style>
+        body {
+            background: url('milky_way.png') no-repeat fixed;
+            background-size: cover;
+        }
+    </style>
+
+</head>
+
+
+<body>
+    <canvas id="solarCanvas"></canvas>
+    <script>
+        const sizes = {
+            planetSizer: {
+                Mercury:16, Venus: 32, Earth: 50, Mars: 25,
+                Jupiter: 80, Saturn: 60, Uranus: 45, Neptune: 45, Pluto: 20
+            },
+            sunSizer: 125
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById("solarCanvas");
+            const ctx = canvas.getContext("2d");
+
+            const resizeCanvas = () => {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            };
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const sun = {
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                radius: 62.5
+            }
+
+            const planets = [
+                { name: "Mercury", radius: 100, angle: 0, speed: 0.013, url: "mercury.html" },
+                { name: "Venus", radius: 157.6, angle: 0, speed: 0.00672, url: "venus.html" },
+                { name: "Earth", radius: 199.2, angle: 0, speed: 0.004186, url: "earth.html" },
+                { name: "Mars", radius: 252.2, angle: 0, speed: 0.002236, url: "mars.html" },
+                { name: "Jupiter", radius: 407.9, angle: 0, speed: 0.0003523, url: "jupiter.html" },
+                { name: "Saturn", radius: 485.3, angle: 0, speed: 0.0001417, url: "saturn.html" },
+                { name: "Uranus", radius: 573.4, angle: 0, speed: 0.0000498, url: "uranus.html" },
+                { name: "Neptune", radius: 630, angle: 0, speed: 0.00002535, url: "neptune.html" },
+                { name: "Pluto", radius: 680, angle: 0, speed: 0.0000169, url: "pluto.html" }
+            ].map(planet => ({
+                ...planet,
+                // Scale radius based on screen size
+                radius: planet.radius * Math.min(canvas.width, canvas.height) / 1000,
+                size: sizes.planetSizer[planet.name]
+            }));
+
+            function loadImage(src) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
+                    img.src = src;
+                });
+            }
+
+            const sunImage = loadImage('images/sun.png');
+            const planetImages = planets.map(planet => 
+                loadImage(`images/${planet.name}.png`)
+            );
+
+            Promise.all([sunImage, ...planetImages])
+                .then(images => {
+                    sun.image = images[0];
+                    planets.forEach((planet, index) => {
+                        planet.image = images[index + 1];
+                    });
+                    
+                    // Add click interaction
+                    canvas.addEventListener('click', handleClick);
+                    
+                    // Start animation
+                    animate();
+                })
+                .catch(error => {
+                    console.error('Error loading images:', error);
+                    // Fallback: draw colored circles instead of images
+                    sun.image = createFallbackSun();
+                    planets.forEach(planet => {
+                        planet.image = createFallbackPlanet(planet.name);
+                    });
+                    
+                    canvas.addEventListener('click', handleClick);
+                    animate();
+                });
+
+            function createFallbackSun() {
+                const size = 200;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                const gradient = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+                gradient.addColorStop(0, '#FFFF00');
+                gradient.addColorStop(1, '#FF8C00');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                return canvas;
+            }
+
+            function createFallbackPlanet(planetName) {
+                const colors = {
+                    Mercury: '#A9A9A9', Venus: '#E6E6FA', Earth: '#1E90FF',
+                    Mars: '#FF4500', Jupiter: '#DAA520', Saturn: '#F0E68C',
+                    Uranus: '#AFEEEE', Neptune: '#4169E1', Pluto: '#A9A9A9'
+                };
+                
+                const size = 100;
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                
+                ctx.fillStyle = colors[planetName] || '#FFFFFF';
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                return canvas;
+            }
+
+            function handleClick(event) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = event.clientX - rect.left;
+                const mouseY = event.clientY - rect.top;
+
+                // Check if sun was clicked
+                const dxSun = mouseX - sun.x;
+                const dySun = mouseY - sun.y;
+                const distanceToSun = Math.sqrt(dxSun * dxSun + dySun * dySun);
+
+                if (distanceToSun < sun.radius) {
+                    window.open("sun.html", "_blank");
+                    return;
+                }
+
+                // Check if a planet was clicked
+                planets.forEach(planet => {
+                    const dx = mouseX - planet.x;
+                    const dy = mouseY - planet.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < planet.size / 2) {
+                        window.open(planet.url, "_blank");
+                    }
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                sun.x = canvas.width / 2;
+                sun.y = canvas.height / 2;
+
+                // draw sun
+                if (sun.image) {
+                    ctx.drawImage(sun.image, sun.x - sizes.sunSizer / 2, sun.y - sizes.sunSizer / 2, sizes.sunSizer, sizes.sunSizer);
+                }
+
+                // draw planets
+                planets.forEach(planet => {
+                    planet.angle += planet.speed;
+                    planet.x = sun.x + planet.radius * Math.cos(planet.angle);
+                    planet.y = sun.y + planet.radius * Math.sin(planet.angle);
+
+                    if (planet.image) {
+                        ctx.drawImage(planet.image, planet.x - planet.size / 2, planet.y - planet.size / 2, planet.size, planet.size);
+                    }
+                });
+
+                requestAnimationFrame(animate);
+            }
+        });
+    </script>
+</body>
+</html>
