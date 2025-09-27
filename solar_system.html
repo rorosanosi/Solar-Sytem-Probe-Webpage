@@ -47,15 +47,15 @@
             }
 
             const planets = [
-                { name: "Mercury", radius: 100, angle: 0, speed: 0.013, url: "mercury.html" },
-                { name: "Venus", radius: 157.6, angle: 0, speed: 0.00672, url: "venus.html" },
-                { name: "Earth", radius: 199.2, angle: 0, speed: 0.004186, url: "earth.html" },
-                { name: "Mars", radius: 252.2, angle: 0, speed: 0.002236, url: "mars.html" },
-                { name: "Jupiter", radius: 407.9, angle: 0, speed: 0.0003523, url: "jupiter.html" },
-                { name: "Saturn", radius: 485.3, angle: 0, speed: 0.0001417, url: "saturn.html" },
-                { name: "Uranus", radius: 573.4, angle: 0, speed: 0.0000498, url: "uranus.html" },
-                { name: "Neptune", radius: 630, angle: 0, speed: 0.00002535, url: "neptune.html" },
-                { name: "Pluto", radius: 680, angle: 0, speed: 0.0000169, url: "pluto.html" }
+                { name: "Mercury", radius: 100, angle: 0, speed: 0.013},
+                { name: "Venus", radius: 157.6, angle: 0, speed: 0.00672},
+                { name: "Earth", radius: 199.2, angle: 0, speed: 0.004186},
+                { name: "Mars", radius: 252.2, angle: 0, speed: 0.002236},
+                { name: "Jupiter", radius: 407.9, angle: 0, speed: 0.0003523},
+                { name: "Saturn", radius: 485.3, angle: 0, speed: 0.0001417},
+                { name: "Uranus", radius: 573.4, angle: 0, speed: 0.0000498},
+                { name: "Neptune", radius: 630, angle: 0, speed: 0.00002535},
+                { name: "Pluto", radius: 680, angle: 0, speed: 0.0000169}
             ].map(planet => ({
                 ...planet,
                 // Scale radius based on screen size
@@ -156,17 +156,6 @@
                     window.open("sun.html", "_blank");
                     return;
                 }
-
-                // Check if a planet was clicked
-                planets.forEach(planet => {
-                    const dx = mouseX - planet.x;
-                    const dy = mouseY - planet.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-
-                    if (distance < planet.size / 2) {
-                        window.open(planet.url, "_blank");
-                    }
-                });
             }
 
             function animate() {
